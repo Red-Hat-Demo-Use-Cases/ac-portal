@@ -1,0 +1,79 @@
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: frontend
+  namespace: ac-wrong-app
+  labels:
+    app: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      deployment: frontend
+  template:
+    metadata:
+      labels:
+        deployment: frontend
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+    spec:
+      containers:
+        - name: frontend
+          image: 'quay.io/dovid/ahfr-tournoi-hotbox-boardcontroller:amd64-latest'
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: frontend
+  namespace: ac-wrong-app
+  labels:
+    app: frontend
+spec:
+  clusterIP: 172.30.79.115
+  ipFamilies:
+    - IPv4
+  ports:
+    - name: 8080-tcp
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  internalTrafficPolicy: Cluster
+  clusterIPs:
+    - 172.30.79.115
+  type: ClusterIP
+  ipFamilyPolicy: SingleStack
+  sessionAffinity: None
+  selector:
+    deployment: frontend
+
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: frontend-route
+  namespace: ac-wrong-app
+spec:
+  to:
+    kind: Service
+    name: frontend
+    weight: 100
+  port:
+    targetPort: 8080-tcp
+  tls:
+    termination: edge
+  wildcardPolicy: None
+
