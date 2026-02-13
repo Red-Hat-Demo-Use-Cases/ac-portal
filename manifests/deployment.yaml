@@ -3,7 +3,7 @@ kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: frontend
-  namespace: ac-wrong-app
+  namespace: ac-portal
   labels:
     app: frontend
 spec:
@@ -39,7 +39,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: frontend
-  namespace: ac-wrong-app
+  namespace: ac-portal
   labels:
     app: frontend
 spec:
@@ -65,7 +65,7 @@ kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
   name: frontend-route
-  namespace: ac-wrong-app
+  namespace: ac-portal
 spec:
   to:
     kind: Service
