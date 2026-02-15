@@ -2,29 +2,36 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: frontend
-  namespace: ac-portal
+  name: ac-controller-dashboard
+  namespace: ac-application
   labels:
-    app: frontend
+    app: ac-controller-dashboard
 spec:
   replicas: 2
   selector:
     matchLabels:
-      deployment: frontend
+      deployment: ac-controller-dashboard
   template:
     metadata:
       labels:
-        deployment: frontend
+        deployment: ac-controller-dashboard
       annotations:
         openshift.io/generated-by: OpenShiftNewApp
     spec:
       containers:
-        - name: frontend
-          image: 'quay.io/dovid/ahfr-tournoi-hotbox-boardcontroller:amd64-latest'
+        - name: ac-controller-dashboard
+          image: 'quay.io/dovid/simple-demo-webapp:amd64-latest'
           ports:
             - containerPort: 8080
               protocol: TCP
           imagePullPolicy: IfNotPresent
+          volumeMounts:
+          - name: simple-demo-webapp-config
+            mountPath: /var/www/html/config
+      volumes:
+        - name: simple-demo-webapp-config
+          configMap:
+            name: simple-demo-webapp-config
       restartPolicy: Always
   strategy:
     type: RollingUpdate
@@ -38,12 +45,11 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: frontend
-  namespace: ac-portal
+  name: ac-controller-dashboard
+  namespace: ac-application
   labels:
-    app: frontend
+    app: ac-controller-dashboard
 spec:
-  clusterIP: 172.30.79.115
   ipFamilies:
     - IPv4
   ports:
@@ -52,28 +58,27 @@ spec:
       port: 8080
       targetPort: 8080
   internalTrafficPolicy: Cluster
-  clusterIPs:
-    - 172.30.79.115
   type: ClusterIP
   ipFamilyPolicy: SingleStack
   sessionAffinity: None
   selector:
-    deployment: frontend
+    deployment: ac-controller-dashboard
 
 ---
 kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
-  name: frontend-route
-  namespace: ac-portal
+  name: ac-controller-dashboard-route
+  namespace: ac-application
 spec:
   to:
     kind: Service
-    name: frontend
+    name: ac-controller-dashboard
     weight: 100
   port:
     targetPort: 8080-tcp
   tls:
     termination: edge
   wildcardPolicy: None
+
 
